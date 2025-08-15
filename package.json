@@ -1,0 +1,99 @@
+{
+  "name": "@mridang/fastify-auth",
+  "version": "1.2.1",
+  "type": "module",
+  "description": "A comprehensive Auth.js integration for Fastify applications with TypeScript support, framework-agnostic HTTP adapters, and role-based access control",
+  "author": {
+    "name": "Mridang Agarwalla",
+    "email": "mridang.agarwalla@gmail.com",
+    "url": "https://github.com/mridang"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "prepack": "tsc",
+    "build": "tsc",
+    "test": "jest --verbose --config=jest.config.mjs --runInBand",
+    "test:watch": "npm run test -- --watch",
+    "test:debug": "jest --verbose --config=jest.config.mjs --runInBand --detectOpenHandles",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "npx eslint .",
+    "lint:fix": "npx eslint . --fix"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "fastify",
+    "authjs",
+    "authentication",
+    "authorization",
+    "oauth",
+    "session",
+    "jwt",
+    "typescript",
+    "express",
+    "fastify",
+    "guards",
+    "decorators",
+    "rbac",
+    "roles",
+    "middleware",
+    "google",
+    "github",
+    "social-login",
+    "passport",
+    "security"
+  ],
+  "devDependencies": {
+    "@auth/core": "^0.40.0",
+    "@jest/globals": "^30.0.5",
+    "@mridang/eslint-defaults": "^1.4.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.3",
+    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.0",
+    "@tsconfig/node20": "^20.1.6",
+    "@types/express": "^5.0.3",
+    "@types/jest": "30.0.0",
+    "@types/node": "22.17.0",
+    "@types/supertest": "^6.0.3",
+    "cookiejar": "^2.1.4",
+    "eslint": "9.32.0",
+    "fastify": "^5.4.0",
+    "jest": "30.0.5",
+    "prettier": "3.6.2",
+    "reflect-metadata": "0.2.2",
+    "semantic-release": "^24.0.0",
+    "superagent": "^10.2.3",
+    "supertest": "^7.1.4",
+    "testcontainers": "^11.5.0",
+    "ts-jest": "29.4.0",
+    "typescript": "5.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mridang/fastify-auth"
+  },
+  "dependencies": {
+    "@auth/core": "^0.40.0",
+    "fastify": "^5.0.0",
+    "@fastify/formbody": "^8.0.1"
+  },
+  "peerDependencies": {
+    "@auth/core": ">=0.40.0",
+    "fastify": ">=5.0.0"
+  },
+  "private": false,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "homepage": "https://github.com/mridang/fastify-auth",
+  "bugs": "https://github.com/mridang/fastify-auth/issues",
+  "publishConfig": {
+    "access": "public"
+  }
+}
