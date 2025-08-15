@@ -7,7 +7,7 @@
  * database systems.
  *
  * @example
- * ```typescript
+ * ```ts
  * import type { Adapter } from "@auth/fastify/adapters"
  * import { MongoDBAdapter } from "@auth/mongodb-adapter"
  *

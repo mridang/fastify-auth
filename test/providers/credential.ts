@@ -1,6 +1,6 @@
 import CredentialsProvider from '@auth/core/providers/credentials';
 import type { User } from '@auth/core/types';
-import { TestUser } from '../client-sessions.module.js';
+import { TestUser } from '../test-app.js';
 
 /**
  * Creates a credentials provider configuration for Auth.js with username/password authentication.
@@ -13,7 +13,7 @@ import { TestUser } from '../client-sessions.module.js';
  * @returns Configured credentials provider for Auth.js
  *
  * @example
- * ```typescript
+ * ```ts
  * const testUsers = {
  *   '1': {
  *     id: '1',

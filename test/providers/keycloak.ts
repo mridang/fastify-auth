@@ -19,7 +19,7 @@ interface KeycloakConfig {
  * @returns Configured Keycloak provider for Auth.js
  *
  * @example
- * ```typescript
+ * ```ts
  * const keycloakProvider = createKeycloakProvider({
  *   issuer: 'http://localhost:8080/realms/myrealm',
  *   clientId: 'my-client',

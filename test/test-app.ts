@@ -5,14 +5,15 @@
  * and test routes. Supports both client-side (JWT) and server-side (database)
  * session strategies with configurable cookie security.
  */
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import Fastify from 'fastify';
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import type { Session } from '@auth/core/types';
+// noinspection ES6PreferShortImport
 import {
   FastifyAuth,
-  getSession,
   type FastifyAuthConfig,
-} from '../../src/index.js';
+  getSession,
+} from '../src/index.js';
 import { createCredentialsProvider } from './providers/credential.js';
 import { createKeycloakProvider } from './providers/keycloak.js';
 import { MemoryAdapter } from './memory.adapter.js';
@@ -35,7 +36,7 @@ export interface TestAppOptions {
   useSecureCookies: boolean;
   oauthIssuer: string;
   users: Record<string, TestUser>;
-  strategy?: 'jwt' | 'database';
+  strategy?: 'client' | 'database';
 }
 
 /**
@@ -51,8 +52,26 @@ interface TestSession extends Session {
  * Augment Fastify reply to include session property
  */
 declare module 'fastify' {
+  // noinspection JSUnusedGlobalSymbols
   interface FastifyReply {
+    // @ts-expect-error since this is a test app, we can ignore the type error
     session: TestSession | null;
+  }
+}
+
+declare module '@auth/core/types' {
+  // noinspection JSUnusedGlobalSymbols
+  interface User {
+    roles: string[];
+    customId?: string;
+  }
+}
+
+declare module '@auth/core/adapters' {
+  // noinspection JSUnusedGlobalSymbols
+  interface AdapterUser {
+    roles: string[];
+    customId: string;
   }
 }
 
@@ -65,8 +84,7 @@ async function authHook(
   config: FastifyAuthConfig,
 ): Promise<void> {
   try {
-    const session = (await getSession(request, config)) as TestSession | null;
-    reply.session = session;
+    reply.session = (await getSession(request, config)) as TestSession | null;
   } catch (error) {
     console.error('Error in authHook:', error);
     reply.session = null;
@@ -134,7 +152,7 @@ function requireRoles(...roles: string[]) {
 export async function createTestApp(
   options: TestAppOptions,
 ): Promise<FastifyInstance> {
-  const { useSecureCookies, oauthIssuer, users, strategy = 'jwt' } = options;
+  const { useSecureCookies, oauthIssuer, users, strategy = 'client' } = options;
 
   const fastify = Fastify({
     trustProxy: true,
@@ -145,19 +163,28 @@ export async function createTestApp(
 
   const authConfig: FastifyAuthConfig = {
     secret:
-      strategy === 'jwt'
+      strategy === 'client'
         ? 'a-super-secret-for-testing'
         : 'server-sessions-test-secret',
     trustHost: true,
     useSecureCookies,
-    providers: [
-      createCredentialsProvider(users),
-      createKeycloakProvider({
-        issuer: oauthIssuer,
-        clientId: 'client1',
-        clientSecret: 'secret1',
-      }),
-    ],
+    providers:
+      strategy === 'client'
+        ? [
+            createCredentialsProvider(users),
+            createKeycloakProvider({
+              issuer: oauthIssuer,
+              clientId: 'client1',
+              clientSecret: 'secret1',
+            }),
+          ]
+        : [
+            createKeycloakProvider({
+              issuer: oauthIssuer,
+              clientId: 'client1',
+              clientSecret: 'secret1',
+            }),
+          ],
     callbacks: {},
   };
 
@@ -181,6 +208,7 @@ export async function createTestApp(
       return session;
     };
   } else {
+    // Client strategy - JWT + session callbacks
     authConfig.callbacks!.jwt = async ({
       token,
       user,
@@ -231,28 +259,31 @@ export async function createTestApp(
     await authHook(request, reply, authConfig);
   });
 
-  fastify.get('/public', async (request, reply) => {
+  fastify.get('/public', async () => {
     return {
       message: 'This is a public endpoint',
       timestamp: Date.now(),
     };
   });
 
-  fastify.get('/session-info', async (request, reply) => {
-    const session = reply.session as TestSession;
-    return {
-      hasSession: !!session,
-      user: session?.user || null,
-      message: 'Session info (public)',
-    };
-  });
+  fastify.get(
+    '/session-info',
+    async (_request: FastifyRequest, reply: FastifyReply) => {
+      const session = reply.session as TestSession;
+      return {
+        hasSession: !!session,
+        user: session?.user || null,
+        message: 'Session info (public)',
+      };
+    },
+  );
 
   fastify.get(
     '/profile',
     {
       preHandler: requireAuth,
     },
-    async (request, reply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       const session = reply.session as TestSession;
       return {
         user: session?.user,
@@ -267,7 +298,7 @@ export async function createTestApp(
     {
       preHandler: requireRoles('user'),
     },
-    async (request, reply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       const session = reply.session as TestSession;
       return {
         user: session?.user,
@@ -282,7 +313,7 @@ export async function createTestApp(
     {
       preHandler: requireRoles('admin'),
     },
-    async (request, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       const session = reply.session as TestSession;
       return {
         user: session?.user,
@@ -297,7 +328,7 @@ export async function createTestApp(
     {
       preHandler: requireRoles('admin', 'moderator'),
     },
-    async (request, reply) => {
+    async (_request: FastifyRequest, reply: FastifyReply) => {
       const session = reply.session as TestSession;
       return {
         user: session?.user,
@@ -307,7 +338,7 @@ export async function createTestApp(
     },
   );
 
-  fastify.get('/auth/login', async (request, reply) => {
+  fastify.get('/auth/login', async () => {
     return {
       page: 'custom-login',
       ok: true,

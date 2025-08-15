@@ -28,5 +28,5 @@ export default {
       },
     ],
   ],
-  repositoryUrl: 'git+https://github.com/mridang/nestjs-auth.git',
+  repositoryUrl: 'git+https://github.com/mridang/fastify-auth.git',
 };

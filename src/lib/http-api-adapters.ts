@@ -1,103 +1,42 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
+import qs from 'qs';
+
+type RequestBody = string | Buffer;
 
 /**
- * Type representing form data that can be encoded as URL-encoded string.
- * Values can be strings, numbers, booleans, or arrays of these types.
+ * Converts a framework-specific request (Fastify) into a
+ * standard Web API `Request` object using the same logic as NestJS version.
  */
-type FormData = Record<
-  string,
-  string | number | boolean | (string | number | boolean)[]
->;
-
-/**
- * Type representing JSON-serializable data.
- */
-type JsonData = Record<string, unknown>;
-
-/**
- * Encodes an object as a URL-encoded string suitable for form submission.
- *
- * Handles both single values and arrays by appending multiple entries for
- * array values. All values are converted to strings during encoding.
- *
- * @param object - The form data object to encode, defaults to empty object
- * @returns The URL-encoded string representation
- *
- * @example
- * ```typescript
- * const formData = { name: "John", tags: ["admin", "user"] }
- * const encoded = encodeUrlEncoded(formData)
- * // Returns: "name=John&tags=admin&tags=user"
- * ```
- */
-export function encodeUrlEncoded(object: FormData = {}): string {
-  const params = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(object)) {
-    if (Array.isArray(value)) {
-      value.forEach((v) => {
-        params.append(key, String(v));
-      });
-    } else {
-      params.append(key, String(value));
-    }
-  }
-
-  return params.toString();
-}
-
-/**
- * Encodes an object as a JSON string.
- *
- * @param obj - The object to encode as JSON
- * @returns The JSON string representation
- *
- * @example
- * ```typescript
- * const data = { user: "john", active: true }
- * const json = encodeJson(data)
- * // Returns: '{"user":"john","active":true}'
- * ```
- */
-function encodeJson(obj: JsonData): string {
-  return JSON.stringify(obj);
-}
-
-/**
- * Encodes a Fastify request body based on the Content-Type header.
- *
- * Supports both URL-encoded form data and JSON payloads. The encoding
- * method is determined by examining the Content-Type header and the
- * body type.
- *
- * @param req - The Fastify request object containing the body to encode
- * @returns The encoded body string, or undefined if body cannot be encoded
- *
- * @example
- * ```typescript
- * const formRequest = {
- *   body: { name: "John" },
- *   headers: { "content-type": "application/x-www-form-urlencoded" }
- * }
- * const encoded = encodeRequestBody(formRequest)
- * ```
- */
-function encodeRequestBody(req: FastifyRequest): string | undefined {
+function encodeRequestBody(req: FastifyRequest): RequestBody | undefined {
   const contentType = req.headers['content-type'];
+  const method = req.method;
 
-  if (typeof req.body === 'object' && req.body !== null) {
-    if (contentType?.includes('application/x-www-form-urlencoded')) {
-      return encodeUrlEncoded(req.body as FormData);
-    } else if (contentType?.includes('application/json')) {
-      return encodeJson(req.body as JsonData);
-    } else {
-      return undefined;
+  let body: RequestBody | undefined;
+
+  if (!/GET|HEAD/.test(method.toUpperCase())) {
+    const rawBody = req.body;
+
+    if (rawBody !== undefined && rawBody !== null) {
+      if (contentType?.includes('application/x-www-form-urlencoded')) {
+        body = qs.stringify(rawBody as Record<string, unknown>, {
+          arrayFormat: 'repeat',
+        });
+      } else if (contentType?.includes('application/json')) {
+        body = JSON.stringify(rawBody);
+      } else if (typeof rawBody === 'string') {
+        body = rawBody;
+      } else if (Buffer.isBuffer(rawBody)) {
+        body = rawBody;
+      } else if (typeof rawBody === 'object') {
+        // Fallback for object bodies without a proper content-type.
+        body = qs.stringify(rawBody as Record<string, unknown>, {
+          arrayFormat: 'repeat',
+        });
+      }
     }
-  } else if (typeof req.body === 'string') {
-    return req.body;
-  } else {
-    return undefined;
   }
+
+  return body;
 }
 
 /**
@@ -106,13 +45,13 @@ function encodeRequestBody(req: FastifyRequest): string | undefined {
  * This adapter function handles the conversion between Fastify's request
  * format and the standard Web API Request interface used by Auth.js core.
  * It preserves headers, method, URL, and body content while ensuring
- * proper encoding based on content type.
+ * proper encoding based on content type using the qs library.
  *
  * @param req - The Fastify request object to convert
  * @returns A Web API Request object
  *
  * @example
- * ```typescript
+ * ```ts
  * fastify.route({
  *   method: "POST",
  *   url: "/api/auth/*",
@@ -161,7 +100,7 @@ export function toWebRequest(req: FastifyRequest): Request {
  * @returns Promise resolving to the response body text
  *
  * @example
- * ```typescript
+ * ```ts
  * fastify.route({
  *   method: ["GET", "POST"],
  *   url: "/api/auth/*",
