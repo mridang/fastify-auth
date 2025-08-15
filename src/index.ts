@@ -43,7 +43,7 @@
  * ```
  *
  * ## Managing the session
- * If you are using Fastify with a template engine (e.g @fastify/view with
+ * If you are using Fastify with a template engine (e.g., @fastify/view with
  * EJS, Pug), you can make the session data available to all routes via a
  * preHandler hook as follows
  *
@@ -154,7 +154,7 @@ declare module 'fastify' {
  * @returns A Fastify plugin async function
  *
  * @example
- * ```typescript
+ * ```ts
  * import { FastifyAuth } from "@auth/fastify"
  * import GitHub from "@auth/fastify/providers/github"
  *
@@ -202,7 +202,7 @@ export function FastifyAuth(config: FastifyAuthConfig): FastifyPluginAsync {
  * @throws {Error} When session validation fails or Auth.js returns an error
  *
  * @example
- * ```typescript
+ * ```ts
  * fastify.get("/profile", async (request, reply) => {
  *   const session = await getSession(request, authConfig)
  *
@@ -243,7 +243,6 @@ export async function getSession(
   } else if (status === 200) {
     return data;
   } else {
-    console.log('mooo');
     throw new Error(data.message);
   }
 }

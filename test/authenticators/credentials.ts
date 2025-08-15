@@ -19,7 +19,7 @@
  *              session. The promise is rejected if any step fails.
  */
 import request from 'supertest';
-import type { TestUser } from '../client-sessions.module.js';
+import { TestUser } from '../test-app.js';
 
 export async function authenticateCredentials(
   agent: ReturnType<typeof request.agent>,

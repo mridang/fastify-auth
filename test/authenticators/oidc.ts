@@ -61,10 +61,8 @@ export async function authenticateOidc(
 
   const authorizeUrl = new URL(authorizeLocation, baseUrl).toString();
 
-  // 3) Follow redirect(s) to mock IdP (manual to capture Location)
   let res = await fetch(authorizeUrl, { redirect: 'manual' });
 
-  // 4) If login page (200), post credentials + claims
   if (res.status === 200) {
     const loginBody = new URLSearchParams({
       username: who.email ?? who.name ?? who.id,
