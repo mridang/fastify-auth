@@ -1,6 +1,6 @@
 {
   "name": "@mridang/fastify-auth",
-  "version": "1.2.1",
+  "version": "1.0.0",
   "type": "module",
   "description": "A comprehensive Auth.js integration for Fastify applications with TypeScript support, framework-agnostic HTTP adapters, and role-based access control",
   "author": {
