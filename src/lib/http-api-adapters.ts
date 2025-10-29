@@ -79,7 +79,12 @@ export function toWebRequest(req: FastifyRequest): Request {
     }
   });
 
-  const body = /GET|HEAD/.test(req.method) ? undefined : encodeRequestBody(req);
+  const rawBody = /GET|HEAD/.test(req.method)
+    ? undefined
+    : encodeRequestBody(req);
+
+  const body =
+    rawBody && Buffer.isBuffer(rawBody) ? new Uint8Array(rawBody) : rawBody;
 
   return new Request(url, {
     method: req.method,
